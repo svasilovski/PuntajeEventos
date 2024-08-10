@@ -1,0 +1,19 @@
+{
+  "name": "puntajeeventos",
+  "version": "1.0.0",
+  "description": "Organizar puntaje en eventos de competición",
+  "main": "index.js",
+  "engines": {
+    "node": "20.15.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2"
+  }
+}
