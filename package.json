@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server/index.js",
-    "build": "cd server && npm install && cd ../client && npm install && npm run build",
+    "build": "cd server && npm install && cd ../client && npm install && npm run build && cd ../login && npm install && npm run build",
     "dev": "npm run build && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
