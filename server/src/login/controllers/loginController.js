@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { getDbLogin, getDbUsers } from '../../infrastructure/database.js';
 
-const JWT_SECRET = 'your_jwt_secret'; // Asegúrate de guardar esto de manera segura
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export async function login(req, res) {
     const { username, password } = req.body;

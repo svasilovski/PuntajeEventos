@@ -1,0 +1,17 @@
+/* Estilos para el tema oscuro */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #121212;
+        --box-background-color: #1E1E1E;
+        --input-border-color: #333333;
+        --input-background-color: #1F1F1F;
+        --input-text-color: #E0E0E0;
+        --button-background-color: #0091EA;
+        --button-text-color: #FFFFFF;
+        --button-hover-background-color: #007BB5;
+        --error-text-color: #FF4D4D;
+        --link-text-color: #4FC3F7;
+        --heading-color: #FFFFFF;
+        --p-text-color: #B0B0B0;
+    }
+}

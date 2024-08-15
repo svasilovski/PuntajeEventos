@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Utiliza variables de entorno para seguridad
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export function authenticateToken(req, res, next) {
     const token = req.cookies.authToken;
@@ -19,4 +19,16 @@ export function authenticateToken(req, res, next) {
         }
         next();
     });
+}
+
+export function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+        if (req.originalUrl === '/login') {
+            return res.redirect('/');
+        }
+
+        return next();
+    }
+
+    res.redirect('/login');
 }

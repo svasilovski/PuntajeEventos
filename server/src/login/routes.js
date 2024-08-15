@@ -1,10 +1,12 @@
 import express from 'express';
 import { login, getUserData } from './controllers/loginController.js';
-import jwt from 'jsonwebtoken';
+import authenticateToken from '../middleware/authenticateToken.js';
+// import jwt from 'jsonwebtoken';
 
 const router = express.Router();
-const JWT_SECRET = 'your_jwt_secret'; // Debes asegurar este valor a través de variables de entorno
+// const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Debes asegurar este valor a través de variables de entorno
 
+/*
 const authenticateToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'No token provided' });
@@ -15,10 +17,14 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
+*/
 
-// Rutas
+// Rutas No portegidas
 router.post('/', login);
-router.get('/user', authenticateToken, getUserData);
+
+router.use(authenticateToken);
+// Ruta protegida por el middleware de JWT
+router.get('/user', getUserData);
 
 export default router;
 

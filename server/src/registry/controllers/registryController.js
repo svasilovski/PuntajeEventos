@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import { getDbLogin, getDbUsers } from '../../infrastructure/database.js';
 
+const SALT = process.env.SALT || 10;
+
 export async function register(req, res) {
     const { username, password, name, surname, email } = req.body;
 
@@ -15,7 +17,8 @@ export async function register(req, res) {
         const existingUser = await dbLogin.get('SELECT * FROM login WHERE username = ?', username);
         if (existingUser) return res.status(400).json({ message: 'Username already exists' });
 
-        const hashedPassword = bcrypt.hashSync(password, 10);
+        const _salt = bcrypt.genSaltSync(SALT);
+        const hashedPassword = bcrypt.hashSync(password, _salt);
 
         const result = await dbLogin.run('INSERT INTO login (username, password) VALUES (?, ?)', [username, hashedPassword]);
         const loginId = result.lastID;

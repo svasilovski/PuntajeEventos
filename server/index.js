@@ -8,7 +8,7 @@ import { init } from './src/infrastructure/database.js';
 import loginRoutes from './src/login/routes.js';
 import registryRoutes from './src/registry/routes.js';
 
-import { authenticateToken } from './src/middleware/authMiddleware.js';
+import { authenticateToken, ensureAuthenticated } from './src/middleware/authMiddleware.js';
 
 const environment = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3001;
@@ -28,23 +28,33 @@ init().catch(err => {
   process.exit(1);
 });
 
-app.use(authenticateToken);
-
+// Rutas Públicas
 app.use('/api/login', loginRoutes);
 app.use('/api/register', registryRoutes);
 
-app.use('/login',express.static(path.resolve(__dirname, '../login/build')));
-app.use('/client',express.static(path.resolve(__dirname, '../client/build')));
-
-app.get('/', (req, res) => {
-  if (req.isAuthenticated) {
-    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-  } else {
-    res.sendFile(path.resolve(__dirname, '../login/build', 'index.html'));
+app.get('/login', (req, res, next) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const redirectTo = req.session.redirectTo || '/';
+    return res.redirect(redirectTo);
   }
+  next();
+}, express.static(path.resolve(__dirname, '../login/build')));
+
+app.use('/login',express.static(path.resolve(__dirname, '../login/build')));
+
+app.use(authenticateToken);
+
+// Rutas Protegidas
+app.get('/', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'), (err) => {
+    if (err) {
+      console.error('Error al enviar el archivo:', err);
+      res.status(err.status || 500).end();
+    }
+  });
 });
 
-// Otras rutas después de autenticación
+app.use(express.static(path.resolve(__dirname, '../client/build')));
 
 app.use((req, res, next) => {
   res.status(404).send('Not Found');
