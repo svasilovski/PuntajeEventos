@@ -15,7 +15,7 @@ export const useFetchUtils = () => {
             const options = applyHeaders({
                 method: 'POST',
                 body: data ? JSON.stringify(data) : undefined,
-                                         headers: customHeaders
+                headers: customHeaders
             });
 
             const response = await fetch(endpoint, options);

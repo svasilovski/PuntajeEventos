@@ -1,23 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../server/server';
 import './AuthPage.css';
 
 const LoginPage = () => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [formValid, setFormValid] = useState(false);
     const { login } = useAuth();
-    const navigate = useNavigate();
+
+    useEffect(() => {
+        setFormValid(
+            username && password
+        );
+    }, [username, password]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError('');
 
+        if (!formValid) {
+            return;
+        }
+
         try {
-            await login(email, password);
-            navigate('/');
+            await login(username, password);
         } catch (error) {
             setError('Credenciales incorrectas. Intenta de nuevo.');
         }
@@ -29,10 +37,10 @@ const LoginPage = () => {
                 <h2>Iniciar sesión</h2>
                 <form onSubmit={handleSubmit}>
                     <input
-                        type="email"
-                        placeholder="Correo electrónico"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                     <input
@@ -42,7 +50,7 @@ const LoginPage = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    <button type="submit">Iniciar sesión</button>
+                    <button type="submit" disabled={!formValid}>Iniciar sesión</button>
                     {error && <p className="error-message">{error}</p>}
                 </form>
                 <p>

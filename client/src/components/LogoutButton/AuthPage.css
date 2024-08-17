@@ -1,0 +1,24 @@
+:root {
+    --primary-color: #f44336;
+    --primary-color-hover: #d32f2f;
+    --text-color: #ffffff;
+}
+
+.logout-button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 0.625rem 1.25rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1rem;
+    margin: 0.25rem 0.125rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: var(--primary-color-hover);
+}

@@ -32,8 +32,19 @@ init().catch(err => {
 app.use('/api/login', loginRoutes);
 app.use('/api/register', registryRoutes);
 
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+    path: '/'
+  });
+
+  res.redirect('/login');
+});
+
 app.get('/login', (req, res, next) => {
-  if (req.isAuthenticated && req.isAuthenticated()) {
+  if (req.isAuthenticated) {
     const redirectTo = req.session.redirectTo || '/';
     return res.redirect(redirectTo);
   }
@@ -41,6 +52,18 @@ app.get('/login', (req, res, next) => {
 }, express.static(path.resolve(__dirname, '../login/build')));
 
 app.use('/login',express.static(path.resolve(__dirname, '../login/build')));
+
+const logout = async () => {
+  try {
+    const response = await postData('/api/logout');
+
+    if (!response || !response.redirected) {
+      window.location.href = '/login';
+    }
+  } catch (error) {
+    console.error('Logout Error:', error);
+  }
+};
 
 app.use(authenticateToken);
 

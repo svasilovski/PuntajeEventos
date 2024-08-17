@@ -22,7 +22,7 @@ export function authenticateToken(req, res, next) {
 }
 
 export function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated && req.isAuthenticated()) {
+    if (req.isAuthenticated) {
         if (req.originalUrl === '/login') {
             return res.redirect('/');
         }

@@ -7,7 +7,9 @@
         --input-background-color: #1F1F1F;
         --input-text-color: #E0E0E0;
         --button-background-color: #0091EA;
+        --button-background-color-diabled: #333333;
         --button-text-color: #FFFFFF;
+        --button-text-color-diabled: #E0E0E0;
         --button-hover-background-color: #007BB5;
         --error-text-color: #FF4D4D;
         --link-text-color: #4FC3F7;
