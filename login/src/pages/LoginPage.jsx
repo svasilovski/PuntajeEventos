@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { loginUser } from '../server/server';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../server/server';
 import './AuthPage.css';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError('');
 
         try {
-            const data = await loginUser(email, password);
-            console.log('Login successful', data);
+            await login(email, password);
+            navigate('/');
         } catch (error) {
             setError('Credenciales incorrectas. Intenta de nuevo.');
         }

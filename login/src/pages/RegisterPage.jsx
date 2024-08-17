@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { registerUser } from '../server/server';
+import { useAuth } from '../server/server';
 import './AuthPage.css';
 
 const RegisterPage = () => {
@@ -8,14 +9,16 @@ const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const { register } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError('');
 
         try {
-            const data = await registerUser(name, email, password);
-            console.log('Registration successful', data);
+            await register(name, email, password);
+            navigate('/login');
         } catch (error) {
             setError('Error en el registro. Intenta de nuevo.');
         }
