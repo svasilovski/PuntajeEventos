@@ -5,7 +5,7 @@ const NotFoundPage = () => {
     return (
         <div className="not-found-container">
             <div className="not-found-box">
-                <h1>404</h1>
+                <h1  style="--color-h1: #dc3545">404</h1>
                 <h2>Oops! Página no encontrada.</h2>
                 <p>
                     Lo sentimos, la página que estás buscando no existe.

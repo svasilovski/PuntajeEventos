@@ -15,5 +15,6 @@
         --link-text-color: #4FC3F7;
         --heading-color: #FFFFFF;
         --p-text-color: #B0B0B0;
+        --logo: url('/logo-dark.svg');
     }
 }

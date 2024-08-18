@@ -10,6 +10,8 @@ import registryRoutes from './src/registry/routes.js';
 
 import { authenticateToken, ensureAuthenticated } from './src/middleware/authMiddleware.js';
 
+import { UserRepository } from './src/repositories/user-repository.js';
+
 const environment = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3001;
 const APIBASEURL = process.env.API_BASE_URL || `http://localhost`;
@@ -33,12 +35,8 @@ app.use('/api/login', loginRoutes);
 app.use('/api/register', registryRoutes);
 
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('authToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
-    path: '/'
-  });
+  const val = UserRepository.logout();
+  res.clearCookie(val.name, val.options);
 
   res.redirect('/login');
 });
