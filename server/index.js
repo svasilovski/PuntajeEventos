@@ -5,10 +5,11 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import { init } from './src/infrastructure/database.js';
 
-import loginRoutes from './src/login/routes.js';
-import registryRoutes from './src/registry/routes.js';
+import authRoutes from './src/routes/auth-routes.js';
+import loginRoutes from './src/routes/login-routes.js';
+import registryRoutes from './src/routes/registry-routes.js';
 
-import { authenticateToken, ensureAuthenticated } from './src/middleware/authMiddleware.js';
+import { authenticateToken, ensureAuthenticated, loginDbInitialized } from './src/middleware/authMiddleware.js';
 
 import { UserRepository } from './src/repositories/user-repository.js';
 
@@ -25,32 +26,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-init().catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
-
 // Rutas Públicas
 app.use('/api/login', loginRoutes);
 app.use('/api/register', registryRoutes);
+app.use('/', authRoutes);
 
-app.post('/api/logout', (req, res) => {
-  const val = UserRepository.logout();
-  res.clearCookie(val.name, val.options);
 
-  res.redirect('/login');
-});
-
-app.get('/login', (req, res, next) => {
-  if (req.isAuthenticated) {
-    const redirectTo = req.session.redirectTo || '/';
-    return res.redirect(redirectTo);
-  }
-  next();
-}, express.static(path.resolve(__dirname, '../login/build')));
-
-app.use('/login',express.static(path.resolve(__dirname, '../login/build')));
-
+/*
 const logout = async () => {
   try {
     const response = await postData('/api/logout');
@@ -62,6 +44,7 @@ const logout = async () => {
     console.error('Logout Error:', error);
   }
 };
+*/
 
 app.use(authenticateToken);
 
@@ -98,12 +81,20 @@ const startServer = (port) => {
   });
 };
 
-startServer(PORT)
-  .then(server => {
-    const port = server.address().port;
-    console.log(`Server is running on ${APIBASEURL}:${port}`);
+// Cuando termino de iniciar la base dedatos, levanto el servicio.
+init()
+  .then(() => {
+    startServer(PORT)
+    .then(server => {
+      const port = server.address().port;
+      console.log(`Server is running on ${APIBASEURL}:${port}`);
+    })
+    .catch(err => {
+      console.error('Error starting server:', err);
+      process.exit(1);
+    });
   })
   .catch(err => {
-    console.error('Error starting server:', err);
-    process.exit(1);
-  });
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});

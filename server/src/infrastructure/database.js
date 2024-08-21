@@ -38,6 +38,7 @@ async function createUsersTable() {
         name TEXT NOT NULL,
         surname TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
+        role TEXT CHECK(role IN ('A', 'U', 'V')) DEFAULT 'U',
         FOREIGN KEY (id) REFERENCES login (id)
     )
     `);

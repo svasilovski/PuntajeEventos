@@ -1,4 +1,4 @@
-import { UserRepository } from '../../repositories/user-repository.js';
+import { UserRepository } from '../repositories/user-repository.js';
 
 export async function register(req, res) {
     const { username, password, name, surname, email } = req.body;

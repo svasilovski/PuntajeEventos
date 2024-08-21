@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getDbLogin, getDbUsers } from '../infrastructure/database.js';
+import { init, getDbLogin, getDbUsers } from '../infrastructure/database.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 const SALT = process.env.SALT || 10;
@@ -64,21 +64,23 @@ export class UserRepository {
             const dbLogin = getDbLogin();
             const dbUsers = getDbUsers();
 
-            const existingUser = await dbLogin.get('SELECT * FROM login WHERE username = ?', username);
+            const existingUser = await dbLogin?.get('SELECT * FROM login WHERE username = ?', username);
             if (existingUser) {
                 let error =  new Error ('Username already exists');
                 error.statusCode = 400;
                 error.local = true;
                 throw error;
             }
+            const isAdmin = await dbUsers?.get('SELECT 1 AS has_admin FROM users WHERE role = ? LIMIT 1',['A']);
 
             const _salt = await bcrypt.genSalt(SALT);
             const hashedPassword = await bcrypt.hash(password, _salt);
 
-            const result = await dbLogin.run('INSERT INTO login (username, password) VALUES (?, ?)', [username, hashedPassword]);
+            const result = await dbLogin?.run('INSERT INTO login (username, password) VALUES (?, ?)', [username, hashedPassword]);
             const loginId = result.lastID;
 
-            await dbUsers.run('INSERT INTO users (id, name, surname, email) VALUES (?, ?, ?, ?)', [loginId, name, surname, email]);
+            let role = isAdmin ? 'V': 'A';
+            await dbUsers.run('INSERT INTO users (id, name, surname, email, role) VALUES (?, ?, ?, ?, ?)', [loginId, name, surname, email, role]);
 
             return {
                 message: 'User registered successfully',
@@ -97,7 +99,7 @@ export class UserRepository {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
             const dbUsers = getDbUsers();
-            const user = await dbUsers.get('SELECT * FROM users WHERE id = ?', decoded.id);
+            const user = await dbUsers?.get('SELECT * FROM users WHERE id = ?', decoded.id);
 
             if (!user) {
                 let error =  new Error ('User not found');
@@ -112,6 +114,65 @@ export class UserRepository {
 
             let error =  new Error ('Invalid credentials');
             error.statusCode = 401;
+            throw error;
+        }
+    }
+
+    static async checkAdmins() {
+        try {
+            const dbUsers = getDbUsers();
+            const result = await dbUsers?.get(
+                'SELECT 1 AS has_admin FROM users WHERE role = ? LIMIT 1',
+                ['A']
+            );
+            return result ? 1 : 0;
+        } catch (err) {
+            console.error('Error al consultar la base de datos:', err);
+
+            let error =  new Error ('Error al consultar la base de datos:');
+            error.statusCode = 500;
+            throw error;
+        }
+    }
+
+    static async updateUserData(userId, name, surname, email) {
+        try {
+            const dbUsers = getDbUsers();
+            await dbUsers.run(
+                'UPDATE users SET name = ?, surname = ?, email = ? WHERE id = ?',
+                [name, surname, email, userId]
+            );
+
+            return {
+                message: 'Datos del usuario actualizados correctamente.',
+                statusCode: 201
+            }
+        } catch (err) {
+            if(err.local) throw err;
+
+            let error =  new Error ('Internal Server Error. \r\nError al actualizar los datos del usuario.');
+            error.statusCode = 500;
+            throw error;
+        }
+    }
+
+    static async updateUserRole(userId, newRole) {
+        try {
+            const dbUsers = getDbUsers();
+            await dbUsers.run(
+                'UPDATE users SET role = ? WHERE id = ?',
+                [newRole, userId]
+            );
+
+            return {
+                message: 'Rol del usuario actualizado correctamente.',
+                statusCode: 201
+            }
+        } catch (err) {
+            if(err.local) throw err;
+
+            let error =  new Error ('Internal Server Error. \r\nError al actualizar el rol del usuario.');
+            error.statusCode = 500;
             throw error;
         }
     }
