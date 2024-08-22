@@ -9,6 +9,7 @@ import authRoutes from './src/routes/auth-routes.js';
 import publicApiRoutes from './src/routes/public-api-routes.js';
 import protectedApiRoutes from './src/routes/protected-api-routes.js';
 import protectedClientRoutes from './src/routes/protected-client-routes.js';
+import errorHandlers from './src/errors/errorHandlers.js';
 
 import { authenticateToken, ensureAuthenticated, loginDbInitialized } from './src/middleware/authMiddleware.js';
 
@@ -37,25 +38,7 @@ app.use(authenticateToken);
 app.use('/api', protectedApiRoutes);
 app.use('/', protectedClientRoutes);
 
-
-
-/*
-// Rutas Protegidas
-app.get('/', ensureAuthenticated, (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'), (err) => {
-    if (err) {
-      console.error('Error al enviar el archivo:', err);
-      res.status(err.status || 500).end();
-    }
-  });
-});
-
-app.use(express.static(path.resolve(__dirname, '../client/build')));
-
-app.use((req, res, next) => {
-  res.status(404).send('Not Found');
-});
-*/
+app.use(errorHandlers);
 
 const startServer = (port) => {
   return new Promise((resolve, reject) => {
