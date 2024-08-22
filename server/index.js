@@ -6,8 +6,9 @@ import { fileURLToPath } from 'url';
 import { init } from './src/infrastructure/database.js';
 
 import authRoutes from './src/routes/auth-routes.js';
-import loginRoutes from './src/routes/login-routes.js';
-import registryRoutes from './src/routes/registry-routes.js';
+import publicApiRoutes from './src/routes/public-api-routes.js';
+import protectedApiRoutes from './src/routes/protected-api-routes.js';
+import protectedClientRoutes from './src/routes/protected-client-routes.js';
 
 import { authenticateToken, ensureAuthenticated, loginDbInitialized } from './src/middleware/authMiddleware.js';
 
@@ -27,27 +28,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Rutas Públicas
-app.use('/api/login', loginRoutes);
-app.use('/api/register', registryRoutes);
+app.use('/api', publicApiRoutes);
 app.use('/', authRoutes);
 
 
-/*
-const logout = async () => {
-  try {
-    const response = await postData('/api/logout');
-
-    if (!response || !response.redirected) {
-      window.location.href = '/login';
-    }
-  } catch (error) {
-    console.error('Logout Error:', error);
-  }
-};
-*/
-
 app.use(authenticateToken);
 
+app.use('/api', protectedApiRoutes);
+app.use('/', protectedClientRoutes);
+
+
+
+/*
 // Rutas Protegidas
 app.get('/', ensureAuthenticated, (req, res) => {
   res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'), (err) => {
@@ -63,6 +55,7 @@ app.use(express.static(path.resolve(__dirname, '../client/build')));
 app.use((req, res, next) => {
   res.status(404).send('Not Found');
 });
+*/
 
 const startServer = (port) => {
   return new Promise((resolve, reject) => {
