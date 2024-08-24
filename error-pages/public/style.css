@@ -1,0 +1,35 @@
+/* Estilos para el tema claro */
+@media (prefers-color-scheme: light) {
+    :root {
+        --background-error-color: #F5C6CB;
+        --error-title-color: #721C24;
+        --error-text-color: #E74C3C;
+    }
+}
+
+/* Estilos para el tema oscuro */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-error-color: #721C24;
+        --error-title-color: #F5C6CB;
+        --error-text-color: #FF4D4D;
+    }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 50px;
+    background-color: var(--background-error-color);
+    color: var(--error-title-color);
+}
+
+h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+
+p {
+    font-size: 1.2em;
+    color: var(--error-text-color);
+}

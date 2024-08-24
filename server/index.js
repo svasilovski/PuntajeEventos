@@ -12,6 +12,7 @@ import protectedClientRoutes from './src/routes/protected-client-routes.js';
 import errorHandlers from './src/errors/errorHandlers.js';
 
 import { authenticateToken, ensureAuthenticated, loginDbInitialized } from './src/middleware/authMiddleware.js';
+// import { fileFilterMiddleware } from './src/middleware/filterMiddleware.js';
 
 import { UserRepository } from './src/repositories/user-repository.js';
 
@@ -28,10 +29,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// app.use('/errors', fileFilterMiddleware);
+
 // Rutas Públicas
 app.use('/api', publicApiRoutes);
 app.use('/', authRoutes);
-
 
 app.use(authenticateToken);
 
@@ -71,6 +73,6 @@ init()
     });
   })
   .catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });
