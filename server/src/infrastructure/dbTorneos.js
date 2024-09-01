@@ -58,6 +58,7 @@ import {
   createEquiposInscritosGeneralesTable,
   getDbEquiposInscritosGenerales,
 } from "./torneos/equipos_inscritos_generales.js";
+import { getTorneoInscripcion } from "./torneos/get_torneo_inscripcion.js";
 
 export async function openTorneosDatabase() {
   await openEventosDatabase();
@@ -102,4 +103,5 @@ export {
   getDbEquiposInscritos,
   getDbIntegrantes,
   getDbEquiposInscritosGenerales,
+  getTorneoInscripcion,
 };

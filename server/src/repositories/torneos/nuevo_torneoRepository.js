@@ -9,3 +9,14 @@ Acá se va a manejar la creación de nuevos torneos.
   - Generación automatica de llaves del evento.
     -Crear un trigger en C/C++ extendiendo la capacidad de la base SQite
 */
+import {
+  init,
+  getDbEventos,
+  getDbCategorias,
+  getDbEventoCategoria,
+  getDbEstadoEventoCategoria,
+  getDbEquiposGenerales,
+  getDbEnfrentamientos,
+  getDbReglasEvento,
+  getDbEquiposInscritosGenerales,
+} from "../infrastructure/database.js";

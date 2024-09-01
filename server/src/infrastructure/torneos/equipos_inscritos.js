@@ -8,6 +8,10 @@ const createTable = `
       evento_categoria_id INTEGER NOT NULL,
       foto BLOB,
       isValid INTEGER DEFAULT 0 CHECK (isValid IN (0, 1)),
+      userId_create INTEGER NOT NULL,
+      fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      fecha_baja DATETIME DEFAULT NULL,
       FOREIGN KEY (evento_categoria_id) REFERENCES Evento_Categoria(id)
   )`;
 

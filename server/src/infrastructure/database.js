@@ -15,6 +15,7 @@ import {
   getDbEquiposInscritos,
   getDbIntegrantes,
   getDbEquiposInscritosGenerales,
+  getTorneoInscripcion,
 } from "./dbTorneos.js";
 
 export async function init() {
@@ -41,4 +42,5 @@ export {
   getDbEquiposInscritos,
   getDbIntegrantes,
   getDbEquiposInscritosGenerales,
+  getTorneoInscripcion,
 };

@@ -9,6 +9,10 @@ const createTable = `
     edad INTEGER,
     email TEXT,
     foto BLOB,
+    userId_create INTEGER NOT NULL,
+    fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_baja DATETIME DEFAULT NULL,
     FOREIGN KEY (equipo_inscrito_id) REFERENCES EquiposInscritos(id)
   )`;
 
