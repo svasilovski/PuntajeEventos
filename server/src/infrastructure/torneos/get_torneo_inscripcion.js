@@ -3,6 +3,13 @@ import { open } from "sqlite";
 import { paths } from "../config.js";
 
 export async function getTorneoInscripcion(userId) {
+  if (!userId) {
+    let error = new Error("All fields are required");
+    error.statusCode = 400;
+    error.local = true;
+    throw error;
+  }
+
   const dbInMemory = await open({
     filename: ":memory:",
     driver: sqlite3.Database,
@@ -37,9 +44,20 @@ export async function getTorneoInscripcion(userId) {
       userId,
     );
 
+    if (!rows) {
+      let error = new Error("No se pudo obtener la lista de equipos.");
+      error.statusCode = 401;
+      error.local = true;
+      throw error;
+    }
+
     return rows;
-  } catch (error) {
-    console.error("Error:", error.message);
+  } catch (err) {
+    if (err.local) throw err;
+
+    let error = new Error("Internal Server Error");
+    error.statusCode = 500;
+    throw error;
   } finally {
     await dbInMemory.close();
   }
