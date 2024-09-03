@@ -83,9 +83,16 @@ export class InscripcionesRepository {
     }
   }
 
-  // TODO Agregar los campos necesarios para agregar en la tabla
-  static async inscribirEqiopos({ eventoId, categoriaId }) {
-    if (!eventoId || !categoriaId) {
+  /**
+   * Inscribe un equipo a un torneo en una categoria.
+   * @param {int} userId
+   * @param {int} eventoCategoriaId
+   * @param {{nombre:string, foto?: byte[]}} equipo
+   * @return {message: string, statusCode: int}
+   * @throws {Error} Codigos de estado controlados 400, 500
+   */
+  static async inscribirEqiopos({ userId, eventoCategoriaId, equipo }) {
+    if (!userId || !eventoCategoriaId || !equipo) {
       let error = new Error("All fields are required");
       error.statusCode = 400;
       error.local = true;
@@ -94,7 +101,16 @@ export class InscripcionesRepository {
 
     try {
       const dbEquipos = getDbEquiposInscritos();
-      // TODO Insertar un equipo
+
+      await dbEquipos.run(
+        "INSERT INTO equipos_inscritos (nombre, evento_categoria_id, foto, userId_create) VALUES (?, ?, ?, ?)",
+        [equipo.nombre, eventoCategoriaId, equipo.foto, userId],
+      );
+
+      return {
+        message: "Equipo registrado correctamente.",
+        statusCode: 201,
+      };
     } catch (err) {
       if (err.local) throw err;
 
@@ -111,11 +127,7 @@ export class InscripcionesRepository {
    * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} integrantes
    * @returns
    */
-  static #insertarUsuariosEnTransaccion = async (
-    userId,
-    equipoId,
-    integrantes,
-  ) => {
+  static async #insertarUsuariosEnTransaccion(userId, equipoId, integrantes) {
     const dbIntegrantes = await getDbIntegrantes();
 
     return new Promise((resolve, reject) => {
@@ -175,7 +187,7 @@ export class InscripcionesRepository {
         });
       });
     });
-  };
+  }
 
   /**
    * @description Agrega un integrante al equipo
@@ -183,6 +195,8 @@ export class InscripcionesRepository {
    * @param {int} param0.userId Identificador del usuario que lo carga.
    * @param {int} param0.equipoId Identificador del equipo.
    * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} param0.integrantes integrantes Lista de objetos
+   * @returns {message: string, statusCode: int}
+   * @throws {Error} Codigos de estado controlados 400, 500
    */
   static async inscribirIntegrantes({ userId, equipoId, integrantes }) {
     if (!userId || !equipoId || !integrantes || integrantes?.length > 0) {
