@@ -3,7 +3,7 @@ import {
   getDbEquiposInscritos,
   getDbIntegrantes,
   getTorneoInscripcion,
-} from "../infrastructure/database.js";
+} from "../../infrastructure/database.js";
 
 export class InscripcionesRepository {
   static async listaEquipos({ userId }) {
