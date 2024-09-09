@@ -1,14 +1,3 @@
-/*
-Acá se va a manejar la creación de nuevos torneos.
-  - Listar todos los torneos. Solo para usuarios y administradores.
-  - Listar tornes para inscripción. Solo usuarios registrados.
-  - Listar torneos activos y pronto a comenzar. Todos los usuarios pueden acceder.
-  - Crear torneo. Solo pueden crear torneos los usuarios
-  - Modificar torneo. Solo pueden crear torneos los usuarios que tienen el permiso
-  - Eliminar Torneo. Solo pueden crear torneos los usuarios que tienen el permiso
-  - Generación automatica de llaves del evento.
-    -Crear un trigger en C/C++ extendiendo la capacidad de la base SQite
-*/
 import {
   init,
   getDbEventos,
@@ -34,16 +23,23 @@ const _delete =
 
 export class NuevoTorneoRepository {
   static async listaTorneos({ userId }) {
-    if (!userId) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+    if (!userId || isNaN(userId) || userId <= 0) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
       const dbEvento = getDbEventos();
       const eventos = dbEvento.all(_listar, userId);
+
+      if (!eventos) {
+        return {
+          message: "Resource not found",
+          statusCode: 404,
+        };
+      }
 
       if (eventos && eventos?.length == 0) {
         return {
@@ -57,30 +53,36 @@ export class NuevoTorneoRepository {
         statusCode: 200,
       };
     } catch (err) {
-      if (err.local) throw err;
-
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 
   static async getTorneo({ userId, torneoId }) {
-    if (!userId && !torneoId) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+    if (
+      !userId ||
+      !torneoId ||
+      isNaN(userId) ||
+      userId <= 0 ||
+      isNaN(torneoId) ||
+      torneoId <= 0
+    ) {
+      return {
+        message: "Invalid parameters",
+        statusCode: 400,
+      };
     }
 
     try {
       const dbEvento = getDbEventos();
       const evento = dbEvento.get(_getOne, userId, torneoId);
 
-      if (evento) {
+      if (!evento) {
         return {
-          data: null,
-          statusCode: 201,
+          message: "Not found.",
+          statusCode: 404,
         };
       }
 
@@ -89,17 +91,17 @@ export class NuevoTorneoRepository {
         statusCode: 200,
       };
     } catch (err) {
-      if (err.local) throw err;
-
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 
   static #validaTorneo(objTorneo, add = true) {
     return (
       objTorneo &&
+      !isNaN(objTorneo?.id) &&
       (typeof objTorneo.id === "number" && add
         ? objTorneo.id === 0
         : objTorneo.id > 0) &&
@@ -109,18 +111,17 @@ export class NuevoTorneoRepository {
   }
 
   static async addTorneo({ userId, torneo }) {
-    if (!userId && !torneo) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
-    }
-
-    if (!this.#validaTorneo(torneo)) {
-      let error = new Error("Invalid format param torneo");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+    if (
+      !userId ||
+      !torneo ||
+      isNaN(userId) ||
+      userId <= 0 ||
+      !this.#validaTorneo(torneo)
+    ) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
@@ -134,56 +135,123 @@ export class NuevoTorneoRepository {
         userId,
       ]);
 
+      if (stmt === 0) {
+        return {
+          message: "Resource not found.",
+          statusCode: 404,
+        };
+      }
       return {
-        data: null,
+        message: "Add Sucessfull",
         statusCode: 201,
       };
     } catch (err) {
-      if (err.local) throw err;
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error",
+        statusCode: 500,
+      };
     }
   }
 
   static async modifyTorneo({ userId, torneo }) {
-    if (!userId && !torneo) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+    if (
+      !userId ||
+      !torneo ||
+      isNaN(userId) ||
+      userId <= 0 ||
+      !this.#validaTorneo(torneo, false)
+    ) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
       const dbEvento = getDbEventos();
-      // TODO Desarrollar Modificar torneo
-    } catch (err) {
-      if (err.local) throw err;
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      const stmt = await dbEvento.run(_edit, [
+        torneo?.nombre,
+        torneo?.fecha_inicio,
+        torneo?.num_max_competidores,
+        userId,
+        torneo?.id,
+      ]);
+
+      if (stmt === 0) {
+        return {
+          message: "Resource not found.",
+          statusCode: 404,
+        };
+      }
+
+      return {
+        message: "Torneo actualizado correctamente.",
+        statusCode: 200,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error",
+        statusCode: 500,
+      };
     }
   }
 
   static async deleteTorneo({ userId, torneoId }) {
-    if (!userId && !torneoId) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+    if (
+      !userId ||
+      !torneoId ||
+      isNaN(userId) ||
+      isNaN(torneoId) ||
+      userId <= 0 ||
+      torneoId <= 0
+    ) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
       const dbEvento = getDbEventos();
-      // TODO Agregar delete torneo, es una baja logica.
-    } catch (err) {
-      if (err.local) throw err;
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      const stmt = await dbEvento.run(_delete, [userId, torneoId]);
+      if (stmt === 0) {
+        return {
+          message: "Resource not found.",
+          statusCode: 404,
+        };
+      }
+      return {
+        message: "Delete Sucessfull",
+        statusCode: 204,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 }
