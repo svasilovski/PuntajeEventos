@@ -2,6 +2,14 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { paths } from "../config.js";
 
+const _getEquipos =
+  "SELECT e.id, e.nombre, ev.nombre AS evento, c.nombre AS categoria, e.foto \
+FROM dbo.EquiposInscritos e \
+JOIN dbo.Evento_Categoria ec ON e.evento_categoria_id = ec.id \
+JOIN dbo.Eventos ev ON ec.evento_id = ev.id \
+JOIN dbo.Categorias c ON ec.categoria_id = c.id \
+WHERE e.userId_create = ?";
+
 export async function getTorneoInscripcion(userId) {
   if (!userId) {
     let error = new Error("All fields are required");
@@ -29,20 +37,7 @@ export async function getTorneoInscripcion(userId) {
     await runSQL(`ATTACH DATABASE '${paths.categorias}' AS dbo`);
     await runSQL(`ATTACH DATABASE '${paths.eventos}' AS dbo`);
 
-    const rows = await dbInMemory.all(
-      `SELECT
-          e.id,
-          e.nombre,
-          ev.nombre AS evento,
-          c.nombre AS categoria,
-          e.foto
-        FROM dbo.EquiposInscritos e
-        JOIN dbo.Evento_Categoria ec ON e.evento_categoria_id = ec.id
-        JOIN dbo.Eventos ev ON ec.evento_id = ev.id
-        JOIN dbo.Categorias c ON ec.categoria_id = c.id
-        WHERE e.userId_create = ?`,
-      userId,
-    );
+    const rows = await dbInMemory.all(_getEquipos, userId);
 
     if (!rows) {
       let error = new Error("No se pudo obtener la lista de equipos.");

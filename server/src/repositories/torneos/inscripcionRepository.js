@@ -5,7 +5,38 @@ import {
   getTorneoInscripcion,
 } from "../../infrastructure/database.js";
 
+// const _getEquipos = ""; en getTorneoInscripcion
+const _addEquipos =
+  "INSERT INTO equipos_inscritos \
+(nombre, evento_categoria_id, foto, userId_create) \
+VALUES (?, ?, ?, ?)";
+
+// TODO Agregar consultas sql para agregar y eliminar de equipos.
+const _updEquipo = "";
+const _delEquipo = "";
+
+const _getIntegrantes =
+  "SELECT id, nombre, edad, email, foto \
+FROM Integrantes \
+WHERE userId_create = ?, equipo_inscrito_id = ?";
+
+const _addIntegrantes =
+  "INSERT INTO integrantes \
+(equipo_inscrito_id, nombre, edad, email, foto, userId_create) \
+VALUES (?, ?, ?, ?, ?, ?)";
+
+// TODO Agregar consultas sql para agregar y eliminar integrantes.
+const _updIntegrantes = "";
+const _delIntegrantes = "";
+
 export class InscripcionesRepository {
+  // TODO Arreglar los errores como en nuevo_torneo.js
+
+  /**
+   * Obtener una lista de equipos por usuario.
+   * @param {userId:int} param0 Objeto con el id de usuario
+   * @returns Lista de equipos correspondientes al usuario que lo cargo
+   */
   static async listaEquipos({ userId }) {
     if (!userId) {
       let error = new Error("All fields are required");
@@ -37,6 +68,11 @@ export class InscripcionesRepository {
     }
   }
 
+  /**
+   * Obtener la lista de integrantes asociados a un equipo.
+   * @param {userId: int, equipoId: int} param0 Objeto con el id de usuario y id de equipo
+   * @returns Lista de integrantes de un equipo.
+   */
   static async listaIntegrantes({ userId, equipoId }) {
     if (!userId || !equipoId) {
       let error = new Error("All fields are required");
@@ -48,10 +84,7 @@ export class InscripcionesRepository {
     try {
       const dbIntegrantes = getDbIntegrantes();
       const integrantes = await dbIntegrantes.get(
-        "SELECT \
-          id, nombre, edad, email, foto \
-        FROM Integrantes \
-        WHERE userId_create = ?, equipo_inscrito_id = ?",
+        _getIntegrantes,
         userId,
         equipoId,
       );
@@ -102,10 +135,12 @@ export class InscripcionesRepository {
     try {
       const dbEquipos = getDbEquiposInscritos();
 
-      await dbEquipos.run(
-        "INSERT INTO equipos_inscritos (nombre, evento_categoria_id, foto, userId_create) VALUES (?, ?, ?, ?)",
-        [equipo.nombre, eventoCategoriaId, equipo.foto, userId],
-      );
+      await dbEquipos.run(_addEquipos, [
+        equipo.nombre,
+        eventoCategoriaId,
+        equipo.foto,
+        userId,
+      ]);
 
       return {
         message: "Equipo registrado correctamente.",
@@ -137,9 +172,7 @@ export class InscripcionesRepository {
             return reject(err);
           }
 
-          const stmt = dbIntegrantes.prepare(
-            "INSERT INTO integrantes (equipo_inscrito_id, nombre, edad, email, foto, userId_create) VALUES (?, ?, ?, ?, ?, ?)",
-          );
+          const stmt = dbIntegrantes.prepare(_addIntegrantes);
 
           let errorOccurred = false;
 
@@ -226,5 +259,26 @@ export class InscripcionesRepository {
       error.statusCode = 500;
       throw error;
     }
+  }
+
+  // TODO Terminar de implementar los métodos add y delete de equipos e integrantes.
+  static async actualizarEquipo() {
+    // _updEquipo
+    throw "No implementado.";
+  }
+
+  static async eliminarEquipo() {
+    // _delEquipo
+    throw "No implementado.";
+  }
+
+  static async actualizarIntegrante() {
+    // _updIntegrantes
+    throw "No implementado.";
+  }
+
+  static async eliminarIntegrante() {
+    // _delIntegrantes
+    throw "No implementado.";
   }
 }
