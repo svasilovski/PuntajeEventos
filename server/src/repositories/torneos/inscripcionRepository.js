@@ -261,17 +261,103 @@ export class InscripcionesRepository {
     }
   }
 
-  // TODO Terminar de implementar los métodos add y delete de equipos e integrantes.
-  static async actualizarEquipo() {
-    // _updEquipo
-    throw "No implementado.";
+  /**
+   * Actualiza un equipo de un torneo en una categoria.
+   * @param {int} userId
+   * @param {int} eventoCategoriaId
+   * @param {{nombre:string, foto?: byte[]}} equipo
+   * @return {message: string, statusCode: int} status 201
+   * @throws {Error} Codigos de estado controlados 400, 500
+   */
+  static async actualizarEquipo({ userId, eventoCategoriaId, equipo }) {
+    if (!userId || !eventoCategoriaId || !equipo) {
+      return {
+        message: "All fields are required",
+        statusCode: 400,
+      };
+    }
+
+    try {
+      const dbEquipos = getDbEquiposInscritos();
+
+      await dbEquipos.run(_updEquipo, [
+        equipo.nombre,
+        eventoCategoriaId,
+        equipo.foto,
+        userId,
+      ]);
+
+      return {
+        message: "Add sucessfull",
+        statusCode: 201,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error",
+        statusCode: 500,
+      };
+    }
   }
 
-  static async eliminarEquipo() {
-    // _delEquipo
-    throw "No implementado.";
+  /**
+   * Eliminar un equipo de un torneo por categoria.
+   * @param {userId: int, equipoId:int} param0
+   * Identificador del usuario que realiza la acción y del
+   * equipo a eliminar.
+   * @returns
+   */
+  static async eliminarEquipo({ userId, equipoId }) {
+    if (
+      !userId ||
+      !equipoId ||
+      isNaN(userId) ||
+      isNaN(equipoId) ||
+      userId <= 0 ||
+      equipoId <= 0
+    ) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
+    }
+
+    try {
+      const dbEquipos = getDbEquiposInscritos();
+
+      const stmt = await dbEquipos.run(_delEquipo, [userId, equipoId]);
+      if (stmt === 0) {
+        return {
+          message: "Resource not found.",
+          statusCode: 404,
+        };
+      }
+      return {
+        message: "Delete sucessfull",
+        statusCode: 204,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
+    }
   }
 
+  // TODO Implementar metódo de asctualizar y eliminar integrantes.
   static async actualizarIntegrante() {
     // _updIntegrantes
     throw "No implementado.";
