@@ -26,8 +26,8 @@ const _addIntegrantes =
 VALUES (?, ?, ?, ?, ?, ?)";
 
 // TODO Agregar consultas sql para agregar y eliminar integrantes.
-const _updIntegrantes = "";
-const _delIntegrantes = "";
+const _updIntegrante = "";
+const _delIntegrante = "";
 
 export class InscripcionesRepository {
   // TODO Arreglar los errores como en nuevo_torneo.js
@@ -227,7 +227,7 @@ export class InscripcionesRepository {
    * @param {Object} param0 Todos los csmpos son obligatorios.
    * @param {int} param0.userId Identificador del usuario que lo carga.
    * @param {int} param0.equipoId Identificador del equipo.
-   * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} param0.integrantes integrantes Lista de objetos
+   * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} param0.integrante integrantes Lista de objetos
    * @returns {message: string, statusCode: int}
    * @throws {Error} Codigos de estado controlados 400, 500
    */
@@ -330,14 +330,15 @@ export class InscripcionesRepository {
 
     try {
       const dbEquipos = getDbEquiposInscritos();
-
       const stmt = await dbEquipos.run(_delEquipo, [userId, equipoId]);
+
       if (stmt === 0) {
         return {
           message: "Resource not found.",
           statusCode: 404,
         };
       }
+
       return {
         message: "Delete sucessfull",
         statusCode: 204,
@@ -357,14 +358,95 @@ export class InscripcionesRepository {
     }
   }
 
-  // TODO Implementar metódo de asctualizar y eliminar integrantes.
-  static async actualizarIntegrante() {
-    // _updIntegrantes
-    throw "No implementado.";
+  static async actualizarIntegrante({ userId, equipoId, integrante }) {
+    if (!userId || !equipoId || !integrante) {
+      return {
+        message: "All fields are required",
+        statusCode: 400,
+      };
+    }
+
+    try {
+      const dbEquipos = getDbEquiposInscritos();
+
+      await dbEquipos.run(_updIntegrante, [
+        equipoId,
+        integrante.name,
+        integrante.edad,
+        integrante.email,
+        integrante.foto,
+        userId,
+        integrante.id,
+      ]);
+
+      return {
+        message: "Add sucessfull",
+        statusCode: 201,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error",
+        statusCode: 500,
+      };
+    }
   }
 
-  static async eliminarIntegrante() {
-    // _delIntegrantes
-    throw "No implementado.";
+  static async eliminarIntegrante({ userId, equipoId, integranteId }) {
+    if (
+      !userId ||
+      !equipoId ||
+      isNaN(userId) ||
+      isNaN(equipoId) ||
+      isNaN(integranteId) ||
+      userId <= 0 ||
+      equipoId <= 0 ||
+      integranteId <= 0
+    ) {
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
+    }
+
+    try {
+      const dbEquipos = getDbEquiposInscritos();
+
+      const stmt = await dbEquipos.run(_delIntegrante, [
+        userId,
+        equipoId,
+        integranteId,
+      ]);
+
+      if (stmt === 0) {
+        return {
+          message: "Resource not found.",
+          statusCode: 404,
+        };
+      }
+
+      return {
+        message: "Delete sucessfull",
+        statusCode: 204,
+      };
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
+
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
+    }
   }
 }
