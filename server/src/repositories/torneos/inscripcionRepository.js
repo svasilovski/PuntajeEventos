@@ -30,8 +30,6 @@ const _updIntegrante = "";
 const _delIntegrante = "";
 
 export class InscripcionesRepository {
-  // TODO Arreglar los errores como en nuevo_torneo.js
-
   /**
    * Obtener una lista de equipos por usuario.
    * @param {userId:int} param0 Objeto con el id de usuario
@@ -39,10 +37,10 @@ export class InscripcionesRepository {
    */
   static async listaEquipos({ userId }) {
     if (!userId) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
@@ -60,11 +58,17 @@ export class InscripcionesRepository {
         statusCode: 200,
       };
     } catch (err) {
-      if (err.local) throw err;
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 
@@ -75,10 +79,10 @@ export class InscripcionesRepository {
    */
   static async listaIntegrantes({ userId, equipoId }) {
     if (!userId || !equipoId) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
@@ -108,11 +112,17 @@ export class InscripcionesRepository {
         statusCode: 200,
       };
     } catch (err) {
-      if (err.local) throw err;
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 
@@ -126,10 +136,10 @@ export class InscripcionesRepository {
    */
   static async inscribirEqiopos({ userId, eventoCategoriaId, equipo }) {
     if (!userId || !eventoCategoriaId || !equipo) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
@@ -147,11 +157,17 @@ export class InscripcionesRepository {
         statusCode: 201,
       };
     } catch (err) {
-      if (err.local) throw err;
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
 
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
+      return {
+        message: "Internal server error.",
+        statusCode: 500,
+      };
     }
   }
 
@@ -169,7 +185,10 @@ export class InscripcionesRepository {
       dbIntegrantes.serialize(() => {
         dbIntegrantes.run("BEGIN TRANSACTION", (err) => {
           if (err) {
-            return reject(err);
+            return reject({
+              message: `Error al iniciar la transacción: ${err.message}`,
+              statusCode: 500,
+            });
           }
 
           const stmt = dbIntegrantes.prepare(_addIntegrantes);
@@ -189,14 +208,15 @@ export class InscripcionesRepository {
                   errorOccurred = true;
                   dbIntegrantes.run("ROLLBACK", (rollbackErr) => {
                     if (rollbackErr) {
-                      let error = new Error(
-                        `Error al hacer rollback: ${rollbackErr.message}`,
-                      );
-                      error.statusCode = 500;
-                      error.local = true;
-                      throw error;
+                      reject({
+                        message: `Error al hacer rollback: ${rollbackErr.message}`,
+                        statusCode: 500,
+                      });
                     }
-                    reject(err);
+                  });
+                  reject({
+                    message: "Error al guardar usuarios",
+                    statusCode: 400,
                   });
                 }
               },
@@ -205,15 +225,24 @@ export class InscripcionesRepository {
 
           stmt.finalize((err) => {
             if (err) {
-              return reject(err);
+              return reject({
+                message: `Error al finalizar la sentencia: ${err.message}`,
+                statusCode: 500,
+              });
             }
 
             if (!errorOccurred) {
               dbIntegrantes.run("COMMIT", (commitErr) => {
                 if (commitErr) {
-                  return reject(commitErr);
+                  return reject({
+                    message: commitErr.message,
+                    statusCode: 500,
+                  });
                 }
-                resolve("Usuarios insertados exitosamente");
+                resolve({
+                  message: "Usuarios insertados exitosamente",
+                  statusCode: 200,
+                });
               });
             }
           });
@@ -233,31 +262,36 @@ export class InscripcionesRepository {
    */
   static async inscribirIntegrantes({ userId, equipoId, integrantes }) {
     if (!userId || !equipoId || !integrantes || integrantes?.length > 0) {
-      let error = new Error("All fields are required");
-      error.statusCode = 400;
-      error.local = true;
-      throw error;
+      return {
+        message: "Invalid parameters.",
+        statusCode: 400,
+      };
     }
 
     try {
-      const dbIntegrantes = getDbIntegrantes();
-
-      const result = await DatabaseHelper.#insertarUsuariosEnTransaccion(
+      await DatabaseHelper.#insertarUsuariosEnTransaccion(
         userId,
         equipoId,
         integrantes,
-      );
+      )
+        .try((message) => {
+          return message;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (err) {
+      if (err.message.includes("syntax error")) {
+        return {
+          message: "Bad request",
+          statusCode: 400,
+        };
+      }
 
       return {
-        message: result,
-        statusCode: 200,
+        message: "Internal server error.",
+        statusCode: 500,
       };
-    } catch (err) {
-      if (err.local) throw err;
-
-      let error = new Error("Internal Server Error");
-      error.statusCode = 500;
-      throw error;
     }
   }
 

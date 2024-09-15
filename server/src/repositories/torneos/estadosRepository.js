@@ -6,10 +6,10 @@ export async function listaEstados() {
     const estados = await dbEstados.all("SELECT id, nombre FROM Estados");
 
     if (!estados) {
-      let error = new Error("No se pudo obtener la lista de estados.");
-      error.statusCode = 401;
-      error.local = true;
-      throw error;
+      return {
+        message: "No se pudo obtener la lista de estados.",
+        statusCode: 401,
+      };
     }
 
     return {
@@ -17,10 +17,16 @@ export async function listaEstados() {
       statusCode: 200,
     };
   } catch (err) {
-    if (err.local) throw err;
+    if (err.message.includes("syntax error")) {
+      return {
+        message: "Bad request",
+        statusCode: 400,
+      };
+    }
 
-    let error = new Error("Internal Server Error");
-    error.statusCode = 500;
-    throw error;
+    return {
+      message: "Internal server error.",
+      statusCode: 500,
+    };
   }
 }

@@ -8,12 +8,10 @@ export async function listaTiposParticipacion() {
     );
 
     if (!tipoParticipaciones) {
-      let error = new Error(
-        "No se pudo obtener la lista tipos de participación.",
-      );
-      error.statusCode = 401;
-      error.local = true;
-      throw error;
+      return {
+        message: "No se pudo obtener la lista tipos de participación.",
+        statusCode: 401,
+      };
     }
 
     return {
@@ -21,10 +19,16 @@ export async function listaTiposParticipacion() {
       statusCode: 200,
     };
   } catch (err) {
-    if (err.local) throw err;
+    if (err.message.includes("syntax error")) {
+      return {
+        message: "Bad request",
+        statusCode: 400,
+      };
+    }
 
-    let error = new Error("Internal Server Error");
-    error.statusCode = 500;
-    throw error;
+    return {
+      message: "Internal server error.",
+      statusCode: 500,
+    };
   }
 }
