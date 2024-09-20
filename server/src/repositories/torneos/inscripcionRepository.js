@@ -5,15 +5,21 @@ import {
   getTorneoInscripcion,
 } from "../../infrastructure/database.js";
 
-// const _getEquipos = ""; en getTorneoInscripcion
 const _addEquipos =
   "INSERT INTO equipos_inscritos \
 (nombre, evento_categoria_id, foto, userId_create) \
 VALUES (?, ?, ?, ?)";
 
-// TODO Agregar consultas sql para agregar y eliminar de equipos.
-const _updEquipo = "";
-const _delEquipo = "";
+const _updEquipo =
+  "UPDATE equipos_inscritos SET \
+nombre = ?, evento_categoria_id = ?, foto = ? \
+userId_create = ?, fecha_modificacion CURRENT_TIMESTAMP  \
+VALUES id = ?";
+
+const _delEquipo =
+  "UPDATE equipos_inscritos SET \
+userId_create = ?, fecha_baja CURRENT_TIMESTAMP  \
+VALUES id = ?";
 
 const _getIntegrantes =
   "SELECT id, nombre, edad, email, foto \
@@ -25,15 +31,25 @@ const _addIntegrantes =
 (equipo_inscrito_id, nombre, edad, email, foto, userId_create) \
 VALUES (?, ?, ?, ?, ?, ?)";
 
-// TODO Agregar consultas sql para agregar y eliminar integrantes.
-const _updIntegrante = "";
-const _delIntegrante = "";
+const _updIntegrante =
+  "UPDATE integrantes SET \
+equipo_inscrito_id = ?,\
+nombre = ?,\
+edad = ?,\
+email = ?,\
+foto = ?,\
+userId_create = ?,\
+fecha_modificacion CURRENT_TIMESTAMP \
+WHERE id = ?";
+
+const _delIntegrante =
+  "UPDATE integrantes SET userId_create = ?, fecha_baja = CURRENT_TIMESTAMP WHERE id = ?";
 
 export class InscripcionesRepository {
   /**
-   * Obtener una lista de equipos por usuario.
-   * @param {userId:int} param0 Objeto con el id de usuario
-   * @returns Lista de equipos correspondientes al usuario que lo cargo
+   * @param {{userId: number}} param0 Objeto con el id de usuario
+   * @returns {{data: {id: number, nombre: string, edad: number, email: string, foto: byte[]}[] | null | undefined, message: string | undefined, statusCode: number}} Lista de equipos correspondientes al usuario que lo cargo.
+   * 200 Successfull, 201 No data content, 400 Bad request, 500 Internal server error.
    */
   static async listaEquipos({ userId }) {
     if (!userId) {
@@ -74,8 +90,9 @@ export class InscripcionesRepository {
 
   /**
    * Obtener la lista de integrantes asociados a un equipo.
-   * @param {userId: int, equipoId: int} param0 Objeto con el id de usuario y id de equipo
-   * @returns Lista de integrantes de un equipo.
+   * @param {{userId: number, equipoId: number}} param0 Objeto con el id de usuario y id de equipo
+   * @returns {{data: {id: number, nombre: string, edad: number, email: string, foto: byte[]}[] | null | undefined, message: string | undefined, statusCode: number}} Lista de integrantes de un equipo.
+   * 200 Successfull, 201 No data content, 400 Bad request, 500 Internal server error.
    */
   static async listaIntegrantes({ userId, equipoId }) {
     if (!userId || !equipoId) {
@@ -127,14 +144,11 @@ export class InscripcionesRepository {
   }
 
   /**
-   * Inscribe un equipo a un torneo en una categoria.
-   * @param {int} userId
-   * @param {int} eventoCategoriaId
-   * @param {{nombre:string, foto?: byte[]}} equipo
-   * @return {message: string, statusCode: int}
-   * @throws {Error} Codigos de estado controlados 400, 500
+   *
+   * @param {{userId: number, eventoCategoriaId: number, equipo: {nombre:string, foto?: byte[]}}} param0
+   * @returns {message: string, statusCode: number} 201 Successfull, 400 Bad request, 500 Internal server error.
    */
-  static async inscribirEqiopos({ userId, eventoCategoriaId, equipo }) {
+  static async inscribirEqipos({ userId, eventoCategoriaId, equipo }) {
     if (!userId || !eventoCategoriaId || !equipo) {
       return {
         message: "Invalid parameters.",
@@ -172,11 +186,10 @@ export class InscripcionesRepository {
   }
 
   /**
-   * Inserta los integrantes en la base de datos.
-   * @param {int} userId
-   * @param {int} equipoId
-   * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} integrantes
-   * @returns
+   * @param {number} userId
+   * @param {number} equipoId
+   * @param {{name: string, edad: number, email: string, foto: byte[]}[]} integrantes
+   * @returns {message: string, statusCode: number} 200 Successfull, 400 Bad request, 500 Internal server error.
    */
   static async #insertarUsuariosEnTransaccion(userId, equipoId, integrantes) {
     const dbIntegrantes = await getDbIntegrantes();
@@ -252,13 +265,8 @@ export class InscripcionesRepository {
   }
 
   /**
-   * @description Agrega un integrante al equipo
-   * @param {Object} param0 Todos los csmpos son obligatorios.
-   * @param {int} param0.userId Identificador del usuario que lo carga.
-   * @param {int} param0.equipoId Identificador del equipo.
-   * @param {{nombre:string, edad?:int, email?:string, foto?:byte[]}[]} param0.integrante integrantes Lista de objetos
-   * @returns {message: string, statusCode: int}
-   * @throws {Error} Codigos de estado controlados 400, 500
+   * @param {{userId: int, equipoId: int, integrantes: {nombre:string, edad?:int, email?:string, foto?:byte[]}[]}} param0
+   * @returns {message: string, statusCode: number} 200 Successfull, 400 Bad request, 500 Internal server error.
    */
   static async inscribirIntegrantes({ userId, equipoId, integrantes }) {
     if (!userId || !equipoId || !integrantes || integrantes?.length > 0) {
@@ -296,12 +304,8 @@ export class InscripcionesRepository {
   }
 
   /**
-   * Actualiza un equipo de un torneo en una categoria.
-   * @param {int} userId
-   * @param {int} eventoCategoriaId
-   * @param {{nombre:string, foto?: byte[]}} equipo
-   * @return {message: string, statusCode: int} status 201
-   * @throws {Error} Codigos de estado controlados 400, 500
+   * @param {{userId: int, eventoCategoriaId: int, equipo: {id: int, nombre:string, foto?: byte[]}}} param0
+   * @returns {message: string, statusCode: number} 201 No data content, 400 Bad request, 500 Internal server error.
    */
   static async actualizarEquipo({ userId, eventoCategoriaId, equipo }) {
     if (!userId || !eventoCategoriaId || !equipo) {
@@ -319,6 +323,7 @@ export class InscripcionesRepository {
         eventoCategoriaId,
         equipo.foto,
         userId,
+        equipo.id,
       ]);
 
       return {
@@ -341,11 +346,8 @@ export class InscripcionesRepository {
   }
 
   /**
-   * Eliminar un equipo de un torneo por categoria.
-   * @param {userId: int, equipoId:int} param0
-   * Identificador del usuario que realiza la acción y del
-   * equipo a eliminar.
-   * @returns
+   * @param {{userId: int, equipoId:int}} param0
+   * @returns {message: string, statusCode: number} 204 Successfull, 400 Bas request, 404 Not fount, 500 Internal server errror.
    */
   static async eliminarEquipo({ userId, equipoId }) {
     if (
@@ -392,6 +394,10 @@ export class InscripcionesRepository {
     }
   }
 
+  /**
+   * @param {{userId: number, equipoId: number, integrante: {id: number, name: string, edad: number,email: string, foto: byte[]}}} param0
+   * @returns {message: string, statusCode: number} 201 Successfull, 400 Bad request, 500 Internal server error.
+   */
   static async actualizarIntegrante({ userId, equipoId, integrante }) {
     if (!userId || !equipoId || !integrante) {
       return {
@@ -432,6 +438,10 @@ export class InscripcionesRepository {
     }
   }
 
+  /**
+   * @param {{userId: number, equipoId: number, integranteId: number}} param0
+   * @returns {message: string, statusCode: number} 204 No data content, 400 Bas request, 404 Not fount, 500 Internal server errror.
+   */
   static async eliminarIntegrante({ userId, equipoId, integranteId }) {
     if (
       !userId ||

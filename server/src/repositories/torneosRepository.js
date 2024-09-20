@@ -18,7 +18,7 @@ eliminarTorneo = async ({ userId, torneoId }) =>
 // Inscripciones
 listaEquipos = async () => await InscripcionesRepository.listaEquipos();
 listaIntegrantes = async () => await InscripcionesRepository.listaIntegrantes();
-inscribirEquipo = async () => await InscripcionesRepository.inscribirEqiopos();
+inscribirEquipo = async () => await InscripcionesRepository.inscribirEqipos();
 agregarIntegrantes = async () =>
   await InscripcionesRepository.inscribirIntegrantes();
 editarEquipo = async ({ userId, eventoCategoriaId, equipo }) =>
